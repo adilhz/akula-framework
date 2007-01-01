@@ -1,0 +1,18 @@
+AC_INIT(configure.in)
+
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(akula, 0.1)
+
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
+AC_PROG_LIBTOOL
+
+dnl Checks for libraries "pthread "
+AC_CHECK_LIB(pthread,
+       pthread_create,
+       LIBS="$LIBS -lpthread", 
+       AC_MSG_ERROR([*** pthread library not found!]) 
+)
+
+
+AC_OUTPUT(Makefile src/Makefile src/lf_http_server/Makefile src/akula/Makefile src/unit_tests/Makefile src/akula/dbg/Makefile src/akula/utils/Makefile src/akula/http/Makefile src/akula/net/Makefile src/akula/reactor/Makefile src/unit_tests/TUT/Makefile src/unit_tests/tests/Makefile)
