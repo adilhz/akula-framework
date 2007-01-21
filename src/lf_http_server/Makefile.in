@@ -51,9 +51,7 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_akulahttp_OBJECTS = connections_table.$(OBJEXT) \
-	connection.$(OBJEXT) lf_thread_pool.$(OBJEXT) main.$(OBJEXT) \
-	server.$(OBJEXT) event_handlers.$(OBJEXT) \
+am_akulahttp_OBJECTS = main.$(OBJEXT) server.$(OBJEXT) \
 	configuration.$(OBJEXT)
 akulahttp_OBJECTS = $(am_akulahttp_OBJECTS)
 akulahttp_DEPENDENCIES = $(top_builddir)/src/akula/libakula.la
@@ -68,14 +66,6 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(akulahttp_SOURCES)
 DIST_SOURCES = $(akulahttp_SOURCES)
 HEADERS = $(noinst_HEADERS)
@@ -181,27 +171,14 @@ target_alias = @target_alias@
 INCLUDES = -I$(top_srcdir)/src $(all_includes)
 METASOURCES = AUTO
 akulahttp_SOURCES = \
-connections_table.cpp \
-connection.cpp \
-lf_thread_pool.cpp \
 main.cpp \
 server.cpp \
-event_handlers.cpp \
-aim_connections_table.h \
-connection.h \
-lf_thread_pool.h \
-server.h \
-event_handlers.h \
-configuration.h \
 configuration.cpp
 
 akulahttp_LDADD = $(top_builddir)/src/akula/libakula.la
 noinst_HEADERS = \
-connections_table.h \
 connection.h \
-lf_thread_pool.h \
 server.h \
-event_handlers.h\
 configuration.h
 
 all: all-am
@@ -276,10 +253,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/configuration.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/connection.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/connections_table.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/event_handlers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lf_thread_pool.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/server.Po@am__quote@
 
