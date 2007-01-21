@@ -28,7 +28,7 @@ reactor::OsEventDemultiplexerSelectImpl::OsEventDemultiplexerSelectImpl()
     FD_ZERO(&m_master_wfdset);
 
     ::pipe(m_pipe);
-    add_fd(m_pipe[0], CReactorUtils::READ_MASK);// register the pipe to be able to read the commands
+    add_fd(m_pipe[0], CReactorUtils::READ_EVENT);// register the pipe to be able to read the commands
 }
 
 // registering sockets in the correct fd_set
@@ -41,9 +41,9 @@ reactor::OsEventDemultiplexerSelectImpl::add_fd(int iSocketFD, unsigned long ulF
     }
 
     // "registering" the FD in the correct select()'s set
-    if(ulFlag & CReactorUtils::READ_MASK)  FD_SET(iSocketFD, &m_master_rfdset); 
+    if(ulFlag & CReactorUtils::READ_EVENT)  FD_SET(iSocketFD, &m_master_rfdset); 
 
-    if(ulFlag & CReactorUtils::WRITE_MASK) FD_SET(iSocketFD, &m_master_wfdset);
+    if(ulFlag & CReactorUtils::WRITE_EVENT) FD_SET(iSocketFD, &m_master_wfdset);
 }
 
 // "unregistering" from fd_sets
@@ -51,9 +51,9 @@ void
 reactor::OsEventDemultiplexerSelectImpl::remove_fd(int iSocketFD, unsigned long ulFlag)
 {
     // clear the sets for select()
-    if(ulFlag & CReactorUtils::READ_MASK)  FD_CLR(iSocketFD, &m_master_rfdset); 
+    if(ulFlag & CReactorUtils::READ_EVENT)  FD_CLR(iSocketFD, &m_master_rfdset); 
 
-    if(ulFlag & CReactorUtils::WRITE_MASK) FD_CLR(iSocketFD, &m_master_wfdset);
+    if(ulFlag & CReactorUtils::WRITE_EVENT) FD_CLR(iSocketFD, &m_master_wfdset);
 }
 
 // finding the Max value for registered FDs, this value is needed for select() invokation
@@ -95,7 +95,7 @@ reactor::OsEventDemultiplexerSelectImpl::watch_fds()
         int iMaxFD = get_max_fd(); // determine the FD with max value( the value is written in m_iMaxFD )
 
         iCountOfReadyFDs = ::select(iMaxFD+1, &m_working_rfdset, &m_working_wfdset, NULL, NULL);
-    } while(check_fd(m_pipe[0], CReactorUtils::READ_MASK) && process_internal_command());
+    } while(check_fd(m_pipe[0], CReactorUtils::READ_EVENT) && process_internal_command());
 
     return iCountOfReadyFDs;
 }
@@ -106,9 +106,9 @@ reactor::OsEventDemultiplexerSelectImpl::check_fd(int iSocketFD, unsigned long u
 {
     bool bIsReady = false;
 
-    if( (ulFlag & CReactorUtils::READ_MASK) && FD_ISSET(iSocketFD, &m_working_rfdset) )    bIsReady = true;
+    if( (ulFlag & CReactorUtils::READ_EVENT) && FD_ISSET(iSocketFD, &m_working_rfdset) )    bIsReady = true;
 
-    if( (ulFlag & CReactorUtils::WRITE_MASK) && FD_ISSET(iSocketFD, &m_working_wfdset) )   bIsReady = true;
+    if( (ulFlag & CReactorUtils::WRITE_EVENT) && FD_ISSET(iSocketFD, &m_working_wfdset) )   bIsReady = true;
 
     return bIsReady;
 }

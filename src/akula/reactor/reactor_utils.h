@@ -20,50 +20,62 @@
 #ifndef REACTOR_UTILS_H
 #define REACTOR_UTILS_H
 
-// forward declarations
-namespace net {class CSocket;}
+#include "reactor_utils.h"
+#include <akula/net/socket.h>
+#include <unistd.h>                     //for getdtablesize()
 
 namespace reactor
 {
- class CReactorUtils
- {
-  public:
-     static const unsigned long NO_REGISTERED_EVENTS;
-     static const unsigned long READ_MASK;
-     static const unsigned long WRITE_MASK;
-     static const unsigned long REMOVE_MASK;
- 
-     static const unsigned long MAX_OPEN_FILES_PER_PROCESS;
+class CReactorUtils
+{
+ public:
+    typedef unsigned long EventType_t;
 
-    /**
-     * @class IEventHandler
-     * @brief   This is the logic of the given socket - must be defined from the class
-     */
+    enum Events
+    {
+        NO_EVENTS = 0,
+        READ_EVENT = 1,
+        WRITE_EVENT = 2
+    };
+
+    static unsigned long maxOpenFilesPerProcess(void)
+    {
+        return ::getdtablesize();
+    }
+
     struct IEventHandler
     {
-        virtual long callback(net::CSocket* pSocket, unsigned long ulFlags) = 0;
+        virtual bool handle_read(net::CSocket* pSocket)
+        {
+            return false;
+        }
+        
+        virtual bool handle_write(net::CSocket* pSocket)
+        {
+            return false;
+        }
     };
 
-    class CEventHandlers
+    struct SHandlerTriple
     {
-     public:
-        CEventHandlers(IEventHandler* pRHandler, IEventHandler* pWHandler, net::CSocket* socket);
+        IEventHandler* m_phandler;
+        net::CSocket* m_psocket;
+        EventType_t m_events;
 
-        ~CEventHandlers();
+        SHandlerTriple()
+            : m_phandler(NULL) ,m_psocket(NULL) ,m_events(NO_EVENTS)
+        {}
 
-        CEventHandlers& operator=(const CEventHandlers& rhs);
-
-        IEventHandler* pReadEventHandler;
-        IEventHandler* pWriteEventHandler;
-        net::CSocket*            pSocket;
+        SHandlerTriple(IEventHandler* peh, net::CSocket* ps, EventType_t e)
+            : m_phandler(peh) ,m_psocket(ps) ,m_events(e)
+        {}
     };
 
-  private:
-      /*Disallow copying and assignment*/
-      CReactorUtils(const CReactorUtils&);
-      CReactorUtils& operator=(const CReactorUtils&);
- 
- };
+ private:
+    /*Disallow copying and assignment*/
+    CReactorUtils(const CReactorUtils&);
+    CReactorUtils& operator=(const CReactorUtils&);
+};
 
 }//namespace reactor
 
