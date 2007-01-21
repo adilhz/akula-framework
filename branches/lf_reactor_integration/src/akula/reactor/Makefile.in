@@ -50,7 +50,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libreactor_la_LIBADD =
 am_libreactor_la_OBJECTS = os_event_demultiplexer_poll.lo \
-	os_event_demultiplexer_select.lo reactor_utils.lo
+	os_event_demultiplexer_select.lo
 libreactor_la_OBJECTS = $(am_libreactor_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -63,14 +63,6 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libreactor_la_SOURCES)
 DIST_SOURCES = $(libreactor_la_SOURCES)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -187,28 +179,17 @@ reactor_includedir = $(includedir)/akula/reactor
 reactor_include_HEADERS = \
 reactor.h \
 app_event_demultiplexer_array.h \
-app_event_demultiplexer.h \
-app_event_demultiplexer_map.h \
 os_event_demultiplexer.h \
 os_event_demultiplexer_poll.h \
 os_event_demultiplexer_select.h \
 reactor_type.h \
-reactor_utils.h
+reactor_utils.h \
+lf_thread_pool.h
 
 noinst_LTLIBRARIES = libreactor.la
 libreactor_la_SOURCES = \
 os_event_demultiplexer_poll.cpp \
-os_event_demultiplexer_select.cpp \
-reactor_utils.cpp \
-app_event_demultiplexer_array.h \
-app_event_demultiplexer.h \
-app_event_demultiplexer_map.h \
-os_event_demultiplexer.h \
-os_event_demultiplexer_poll.h \
-os_event_demultiplexer_select.h \
-reactor_type.h \
-reactor.h \
-reactor_utils.h
+os_event_demultiplexer_select.cpp
 
 all: all-am
 
@@ -263,7 +244,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os_event_demultiplexer_poll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os_event_demultiplexer_select.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reactor_utils.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
