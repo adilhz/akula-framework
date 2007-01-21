@@ -25,11 +25,11 @@
 
 reactor::OsEventDemultiplexerPollImpl::OsEventDemultiplexerPollImpl()
 {
-    dbg::info() << "Initializing reactor with " << CReactorUtils::MAX_OPEN_FILES_PER_PROCESS << "slots\n";
+    dbg::info() << "Initializing reactor with " << CReactorUtils::maxOpenFilesPerProcess()<< "slots\n";
 
-    m_pPollDataTable = new struct pollfd [CReactorUtils::MAX_OPEN_FILES_PER_PROCESS];
-    m_pIndexTable = new int [CReactorUtils::MAX_OPEN_FILES_PER_PROCESS];
-    for(int i = 0; i < CReactorUtils::MAX_OPEN_FILES_PER_PROCESS; i++)
+    m_pPollDataTable = new struct pollfd [CReactorUtils::maxOpenFilesPerProcess()];
+    m_pIndexTable = new int [CReactorUtils::maxOpenFilesPerProcess()];
+    for(int i = 0; i < CReactorUtils::maxOpenFilesPerProcess(); i++)
     {
         m_pPollDataTable[i].fd = m_pIndexTable[i] = -1;
     }
@@ -37,7 +37,7 @@ reactor::OsEventDemultiplexerPollImpl::OsEventDemultiplexerPollImpl()
     m_iNumberOfPolledFds = 0;
 
     ::pipe(m_pipe);
-    add_fd(m_pipe[0], CReactorUtils::READ_MASK);// register the pipe to be able to read the commands
+    add_fd(m_pipe[0], CReactorUtils::READ_EVENT);// register the pipe to be able to read the commands
 }
 
 reactor::OsEventDemultiplexerPollImpl::~OsEventDemultiplexerPollImpl()
@@ -69,12 +69,12 @@ reactor::OsEventDemultiplexerPollImpl::add_fd(int iSocketFD, unsigned long ulFla
         m_pIndexTable[iSocketFD] = iCurrPollDataTableIndex;
     }
 
-    if(ulFlag & CReactorUtils::READ_MASK)
+    if(ulFlag & CReactorUtils::READ_EVENT)
     {
         m_pPollDataTable[iIndex].events |= POLLRDNORM;
     }
 
-    if(ulFlag & CReactorUtils::WRITE_MASK)
+    if(ulFlag & CReactorUtils::WRITE_EVENT)
     {
         m_pPollDataTable[iIndex].events |= POLLWRNORM;
     }
@@ -88,19 +88,20 @@ reactor::OsEventDemultiplexerPollImpl::remove_fd(int iSocketFD, unsigned long ul
 {
     int iIndex = m_pIndexTable[iSocketFD];
 
-    if(ulFlag & CReactorUtils::READ_MASK)
+    if(ulFlag & CReactorUtils::READ_EVENT)
     {
         m_pPollDataTable[iIndex].events &= (~POLLRDNORM);
     }
     
-    if(ulFlag & CReactorUtils::WRITE_MASK)
+    if(ulFlag & CReactorUtils::WRITE_EVENT)
     {
         m_pPollDataTable[iIndex].events &= (~POLLWRNORM);
     }
 
     // Removing both events means the connection is closed (removed)
     // Removing when events is 0 is not good since it is possible to be temp. deactivating
-    if(ulFlag & CReactorUtils::REMOVE_MASK)
+    //if(ulFlag & CReactorUtils::REMOVE_MASK)
+    if(m_pPollDataTable[iIndex].events == 0)
     {
         int iLastPollDataTableIndex = --m_iNumberOfPolledFds;
         //<TEST
@@ -118,7 +119,7 @@ reactor::OsEventDemultiplexerPollImpl::remove_fd(int iSocketFD, unsigned long ul
             //TODO: Try to optimize this search, maybe use list of deactivated descriptors and iterate only them
             if(fd == -1) //deactivated - find the fd using the index
             {
-                for(int i = 0; i < CReactorUtils::MAX_OPEN_FILES_PER_PROCESS; i++)
+                for(int i = 0; i < CReactorUtils::maxOpenFilesPerProcess(); i++)
                 {
                     if(iLastPollDataTableIndex == m_pIndexTable[i])
                     {
@@ -171,7 +172,7 @@ reactor::OsEventDemultiplexerPollImpl::watch_fds()
     do
     {
         iCountOfReadyFDs = ::poll(m_pPollDataTable, m_iNumberOfPolledFds, -1);
-    } while(check_fd(m_pipe[0], CReactorUtils::READ_MASK) && process_internal_command());
+    } while(check_fd(m_pipe[0], CReactorUtils::READ_EVENT) && process_internal_command());
 
     return iCountOfReadyFDs;
 }
@@ -190,13 +191,13 @@ reactor::OsEventDemultiplexerPollImpl::check_fd(int iSocketFD, unsigned long ulF
         return false;
     }
 
-    if((ulFlag & CReactorUtils::READ_MASK) &&
+    if((ulFlag & CReactorUtils::READ_EVENT) &&
         (m_pPollDataTable[iIndex].revents & (POLLRDNORM | POLLHUP | POLLNVAL | POLLERR)))
     {
         bIsReady = true;
     }
 
-    if((ulFlag & CReactorUtils::WRITE_MASK) &&
+    if((ulFlag & CReactorUtils::WRITE_EVENT) &&
         (m_pPollDataTable[iIndex].revents & (POLLWRNORM | POLLHUP | POLLNVAL | POLLERR)))
     {
         bIsReady = true;

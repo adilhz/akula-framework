@@ -21,8 +21,6 @@
 #define REACTOR_H
 
 #include "app_event_demultiplexer_array.h"
-#include "app_event_demultiplexer.h"
-#include "app_event_demultiplexer_map.h"
 #include "os_event_demultiplexer.h"
 #include "os_event_demultiplexer_poll.h"
 #include "os_event_demultiplexer_select.h"
