@@ -55,22 +55,38 @@ class AppEventDemultiplexerArrayImpl
     /**the os-level demux mechanism*/
     OsEventDemultiplexer<T_osLevelDemultiplexer> m_OsLevelDemultiplexer;
 
+    bool m_bStop;
+
  public:
     AppEventDemultiplexerArrayImpl()
         :m_handlers(CReactorUtils::maxOpenFilesPerProcess()) //all the elements should be NULL
         , m_indexes(CReactorUtils::maxOpenFilesPerProcess(), -1) //fill in the index table with -1
         , m_iNumberOfRegisteredSockets(0)
+        , m_bStop(false)
     {
     }
     
     ~AppEventDemultiplexerArrayImpl()
     {
+        HandlersContainerIt_t IT;
+        int i;
+        for(IT = m_handlers.begin(), i = 0; IT != m_handlers.end() && i < m_iNumberOfRegisteredSockets; IT++, i++)
+            delete *IT;
+    }
+
+    void stop(void)
+    {
+        m_bStop = true;
+        m_OsLevelDemultiplexer.stop();
+    }
+
+    bool isStopped(void)
+    {
+        return m_bStop;
     }
 
     void
-    register_socket(net::CSocket* pSocket,
-                                  CReactorUtils::EventType_t events,
-                                  CReactorUtils::IEventHandler* pHandler)
+    register_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events, CReactorUtils::IEventHandler* pHandler)
     {
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
         
@@ -175,10 +191,12 @@ class AppEventDemultiplexerArrayImpl
         dbg::debug() << "Reactivated socket " << pSocket->getSocketHandle() << std::endl;
     }
 
-    //NOTE!:The timer should be invoked directly during getReadyEventHandlers
     bool getReadyEventHandler(CReactorUtils::SHandlerTriple& ready)
     {
         int iResult = m_OsLevelDemultiplexer.watch_fds();
+
+        if(isStopped())
+            return false;
         
         if(iResult < 0) // error
             return false;

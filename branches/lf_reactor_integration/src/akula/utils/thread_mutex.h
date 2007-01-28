@@ -32,12 +32,28 @@ namespace utils
         friend class CConditionObject;
         
     public:
-        Thread_Mutex(void);
-        ~Thread_Mutex(void);
+        Thread_Mutex(void)
+        {
+            ::pthread_mutex_init(&m_Mutex, NULL);
+        }
+        
+        ~Thread_Mutex(void)
+        {
+            ::pthread_mutex_destroy(&m_Mutex);
+        }
+
         ///Returns 0 if successfull
-        int acquire(void);
+        int acquire(void)
+        {
+            return ::pthread_mutex_lock(&m_Mutex);
+        }
+
         ///Returns 0 if successfull
-        int release(void);
+        int release(void)
+        {
+            return ::pthread_mutex_unlock(&m_Mutex);
+        }
+
 
     private:
         pthread_mutex_t m_Mutex;

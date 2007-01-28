@@ -49,7 +49,7 @@ CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_unit_tests_OBJECTS = main.$(OBJEXT) test_dbg.$(OBJEXT) \
 	test_http_request.$(OBJEXT) test_string_utils.$(OBJEXT) \
-	test_thread.$(OBJEXT)
+	test_thread.$(OBJEXT) test_reactor.$(OBJEXT)
 unit_tests_OBJECTS = $(am_unit_tests_OBJECTS)
 unit_tests_DEPENDENCIES = $(top_builddir)/src/akula/libakula.la
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -171,7 +171,8 @@ main.cpp \
 test_dbg.cpp \
 test_http_request.cpp \
 test_string_utils.cpp \
-test_thread.cpp
+test_thread.cpp \
+test_reactor.cpp
 
 unit_tests_LDADD = $(top_builddir)/src/akula/libakula.la
 all: all-am
@@ -227,6 +228,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_dbg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_http_request.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_reactor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_string_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_thread.Po@am__quote@
 

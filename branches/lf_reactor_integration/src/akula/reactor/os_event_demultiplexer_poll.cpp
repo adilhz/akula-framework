@@ -38,6 +38,8 @@ reactor::OsEventDemultiplexerPollImpl::OsEventDemultiplexerPollImpl()
 
     ::pipe(m_pipe);
     add_fd(m_pipe[0], CReactorUtils::READ_EVENT);// register the pipe to be able to read the commands
+
+    m_bStop = false;
 }
 
 reactor::OsEventDemultiplexerPollImpl::~OsEventDemultiplexerPollImpl()
@@ -171,6 +173,9 @@ reactor::OsEventDemultiplexerPollImpl::watch_fds()
 
     do
     {
+        if(isStopped())
+            return 0;
+        
         iCountOfReadyFDs = ::poll(m_pPollDataTable, m_iNumberOfPolledFds, -1);
     } while(check_fd(m_pipe[0], CReactorUtils::READ_EVENT) && process_internal_command());
 

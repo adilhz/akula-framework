@@ -20,6 +20,7 @@
 #ifndef CONDITION_OBJECT_H
 #define CONDITION_OBJECT_H
 
+#include "thread_mutex.h"
 #include <pthread.h>
 
 namespace utils
@@ -30,11 +31,33 @@ namespace utils
     class CConditionObject
     {
       public:
-        CConditionObject(Thread_Mutex&);
-        ~CConditionObject(void);
+        CConditionObject(Thread_Mutex& mutex)
+            : m_Mutex(mutex)
+        {
+            ::pthread_cond_init(&m_Condition, NULL);
+        }
+
+        ~CConditionObject(void)
+        {
+            ::pthread_cond_destroy(&m_Condition);
+        }
+
         
-        int wait(void);
-        int signal(void);
+        int wait(void)
+        {
+            return ::pthread_cond_wait(&m_Condition, &m_Mutex.m_Mutex);
+        }
+
+        int signal(void)
+        {
+            return ::pthread_cond_signal(&m_Condition);
+        }
+
+        int broadcast_signal(void)
+        {
+            return ::pthread_cond_broadcast(&m_Condition);
+        }
+
         
       private:
         Thread_Mutex& m_Mutex;

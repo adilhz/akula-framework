@@ -62,6 +62,7 @@ namespace reactor
         utils::CThread<>::ThreadId_t m_leaderThread;
         utils::Thread_Mutex m_mutex;
         utils::CConditionObject m_condition;
+        bool m_bStop;
     
     public:
         static const utils::CThread<>::ThreadId_t NO_CURRENT_LEADER = 0;
@@ -71,12 +72,22 @@ namespace reactor
             : m_reactor(reactor)
             , m_leaderThread(NO_CURRENT_LEADER)
             , m_condition(m_mutex)
+            , m_bStop(false)
         {
         }
 
         ~CLFThreadPool()
         {
         }
+
+        void stop(void)
+        {
+            utils::Guard<utils::Thread_Mutex> guard(m_mutex);
+            m_bStop = true;
+            m_condition.broadcast_signal();
+        }
+
+        bool isStopped(void) {return m_bStop;}
 
         /**The threads that invokes this method joins the thread pool
         * @return <code>false</code> in case of error
@@ -85,7 +96,7 @@ namespace reactor
         {
             utils::Guard<utils::Thread_Mutex> guard(m_mutex);
                 
-            for(;;)
+            while(!isStopped())
             {
                 while(m_leaderThread != NO_CURRENT_LEADER)
                 {
@@ -93,6 +104,11 @@ namespace reactor
                     {
                         dbg::error() << "Thread pool join failed: condition wait\n";
                         return false;
+                    }
+
+                    if(isStopped())
+                    {
+                        return true;
                     }
                 }
             
@@ -107,7 +123,9 @@ namespace reactor
             
                 reactor::CReactorUtils::SHandlerTriple ready;
                 if(!m_reactor.getReadyEventHandler(ready))
-                    continue; //ERROR!
+                {
+                    continue; //ERROR or Reactor stopped. TODO: differentiate them using m_reactor.isStopped()
+                }
             
                 m_reactor.deactivate_socket(ready.m_psocket);
 
@@ -131,6 +149,8 @@ namespace reactor
                     return false;
                 }
             }
+
+            return true;
         }
 
 

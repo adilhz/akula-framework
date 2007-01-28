@@ -26,6 +26,7 @@
 #include "lf_thread_pool.h"
 #include <akula/net/socket.h>
 #include <akula/utils/singleton.h>
+#include <akula/dbg/dbg.h>
 
 namespace reactor
 {
@@ -51,9 +52,12 @@ namespace reactor
              }
          };
 
+        bool m_bStop;
+
      public:
         CReactor()
             : m_LFThreadPool(*this)
+            , m_bStop(false)
         {
         }
         
@@ -61,6 +65,15 @@ namespace reactor
          {
              return utils::ThreadSafeSingleton<CReactor>::getInstance();
          }
+
+        void stop(void)
+        {
+            m_bStop = true;
+            m_engine.stop();
+            m_LFThreadPool.stop();
+        }
+
+        bool isStopped() { return m_bStop;}
 
         void
         register_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events, CReactorUtils::IEventHandler* pHandler)
@@ -99,11 +112,11 @@ namespace reactor
                 handle_events_lf(threads);
             else
             {
-                while(true)
+                while(!isStopped())
                 {
                     CReactorUtils::SHandlerTriple ready;
                     if(!getReadyEventHandler(ready))
-                        assert(false);
+                        continue; //ERROR or Reactor stopped?! It'll be better to check explicitely for both - stop: (getReadyEventHandler() == false && isStopped() == true)
 
                     if(ready.m_events & CReactorUtils::READ_EVENT)
                         ready.m_phandler->handle_read(ready.m_psocket);
@@ -119,20 +132,18 @@ namespace reactor
         void
         handle_events_lf(unsigned int threads)
         {
-            utils::CThread<SLFThread>* array[threads];
-        
             //start threads
-            for(int i = 0; i < threads; i++)
+            for(int i = 0; i < threads -1; i++)
             {
-                array[i] = utils::CThread<SLFThread>::getInstance(reinterpret_cast<void*>(&m_LFThreadPool));
+                utils::CThread<SLFThread>* pThread = 
+                    utils::CThread<SLFThread>::getInstance(reinterpret_cast<void*>(&m_LFThreadPool), true /*detached*/);
                 
-                if(!array[i]->run())
+                if(!pThread || !pThread->run())
                     assert(false);
             }
-        
-            //join threads
-            for(int i = 0; i < threads; i++)
-                array[i]->join();
+
+            // join the thread that invoked reactor
+            m_LFThreadPool.join();
         }
     };
 }/*namespace reactor*/
