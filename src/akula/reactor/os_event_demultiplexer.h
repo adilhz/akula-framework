@@ -178,6 +178,16 @@ class OsEventDemultiplexer
     {
         engine.reactivate_fd(iFD);
     }
+
+    void stop(void)
+    {
+        engine.stop();
+    }
+
+    bool isStopped(void)
+    {
+        return engine.isStopped();
+    }
 };
 
 }//namespace reactor

@@ -45,6 +45,16 @@ class OsEventDemultiplexerPollImpl
     int watch_fds(void);
     bool check_fd(int iFD, unsigned long ulFlag);
 
+    void stop(void)
+    {
+        trigger_internal_command('e');
+    }
+
+    bool isStopped(void)
+    {
+        return m_bStop;
+    }
+
  inline void trigger_internal_command(char command)
  {
      // send command to the reactor (writing to the pipe)
@@ -67,7 +77,7 @@ class OsEventDemultiplexerPollImpl
              return true;
          break;
          case 'e': // dispatch loop exit
-             //return m_bStopRequest = true;
+             return m_bStop = true;
          break;
          default:
              return false;
@@ -83,6 +93,8 @@ class OsEventDemultiplexerPollImpl
 
     //max used index into struct pollfd array
     int m_iNumberOfPolledFds;
+
+    bool m_bStop;
 };
 
 }//namespace reactor

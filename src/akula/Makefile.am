@@ -30,7 +30,6 @@ libakula_la_SOURCES = dbg http net reactor utils
 #We expect to have -lpthread set into $(LIBS); done during configuration, see configure.in
 libakula_la_LIBADD = \
     $(top_builddir)/src/akula/dbg/libdbg.la \
-    $(top_builddir)/src/akula/utils/libutils.la \
     $(top_builddir)/src/akula/net/libnet.la \
     $(top_builddir)/src/akula/http/libhttp.la \
     $(top_builddir)/src/akula/reactor/libreactor.la \
