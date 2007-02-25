@@ -36,16 +36,16 @@ CServer::initialize(const std::string& sServerAddress)
     try
     {
         m_pTCPServerSocket = new net::CTCPServerSocket();
+        m_pTCPServerSocket->setNonBlocking();
+        m_pTCPServerSocket->setReuseAddress();
+        m_pTCPServerSocket->bind(m_pServerAddress);
+        m_pTCPServerSocket->listen();
     }
-    catch(const net::x_socket_exception& se)
+    catch(const net::CNetException& ne)
     {
-        dbg::error() << se.what() << "\n";
+        dbg::error() << ne.what() << std::endl;
         return false;
     }
-    m_pTCPServerSocket->setNonBlocking();
-    m_pTCPServerSocket->setReuseAddress();
-    m_pTCPServerSocket->bind(m_pServerAddress);
-    m_pTCPServerSocket->listen();
 
     return true;
 }
@@ -53,7 +53,16 @@ CServer::initialize(const std::string& sServerAddress)
 bool
 CServer::handle_read(net::CSocket* pSocket)
 {
-    net::CTCPSocket* pConnSocket = m_pTCPServerSocket->accept();
+    net::CTCPSocket* pConnSocket = NULL;
+    
+    try
+    {
+        pConnSocket = m_pTCPServerSocket->accept();
+    } catch (const net::CNetException& ne)
+    {
+        dbg::error() << ne.what() << std::endl;
+        return true;
+    }
     
     CConnection* pConnection = new CConnection();
     pConnection->start(pConnSocket);

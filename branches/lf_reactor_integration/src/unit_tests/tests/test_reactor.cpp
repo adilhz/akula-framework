@@ -43,7 +43,11 @@ namespace tut
         void* operator()(void* parg)
         {
             reactor::CReactor* pReactor = reinterpret_cast<reactor::CReactor*>(parg);
-            ::sleep(5);
+            
+            //sleep a little to give enough time for the reactor startup
+            struct timeval tv = {5, 0};
+            select(0, NULL, NULL, NULL, &tv);
+            
             pReactor->stop();
             return NULL;
         }
@@ -63,10 +67,6 @@ namespace tut
     template<>
     void object::test<1>()
     {
-        dbg::enableLevelPrefix( true);
-        dbg::setLogLevel( dbg::ALL);
-        dbg::setLogStream( &std::cout);
-
         reactor::CReactor reactor;
         utils::CThread<SReactorStopper>* pThread = utils::CThread<SReactorStopper>::getInstance(&reactor);
         pThread->run();
@@ -83,10 +83,6 @@ namespace tut
     template<>
     void object::test<2>()
     {
-        dbg::enableLevelPrefix( true);
-        dbg::setLogLevel( dbg::ALL);
-        dbg::setLogStream( &std::cout);
-
         reactor::CReactor reactor;
         utils::CThread<SReactorStarter>* pThread1 = utils::CThread<SReactorStarter>::getInstance(&reactor);
         utils::CThread<SReactorStopper>* pThread2 = utils::CThread<SReactorStopper>::getInstance(&reactor);

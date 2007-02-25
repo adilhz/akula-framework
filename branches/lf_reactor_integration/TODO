@@ -1,5 +1,4 @@
 
  - Timer events support
- - Epoll - based OS - level demultiplexer. Modify the OS - level demultiplexer to pass more data to the App - level
- demultiplexer. There is a comment, describing one idea to implement it.
+ - Epoll - based OS - level demultiplexer.
  - More unit tests coverage

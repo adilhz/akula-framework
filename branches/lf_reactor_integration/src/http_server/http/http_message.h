@@ -29,7 +29,6 @@
 namespace http
 {
 
-//TEST---------------------------
 class CDataBlock
 {
  private:
@@ -99,7 +98,6 @@ class CDataBlock
         }
     }
 };
-//TEST---------------------------
 
  class CHttpMessage
  {

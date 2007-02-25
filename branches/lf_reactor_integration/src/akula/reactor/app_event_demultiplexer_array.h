@@ -21,10 +21,8 @@
 #ifndef APP_EVENT_DEMULTIPLXER_ARRAY_H
 #define APP_EVENT_DEMULTIPLXER_ARRAY_H
 
-#include "os_event_demultiplexer.h"
 #include "reactor_utils.h"
 #include <akula/net/socket.h>
-#include <akula/dbg/dbg.h>
 #include <akula/utils/guard.h>
 #include <akula/utils/thread_mutex.h>
 #include <vector>
@@ -33,7 +31,6 @@
 
 namespace reactor
 {
-//Engine for app-level demultiplexing
 
 template<class T_osLevelDemultiplexer>
 class AppEventDemultiplexerArrayImpl
@@ -53,7 +50,7 @@ class AppEventDemultiplexerArrayImpl
     int m_iNumberOfRegisteredSockets;
 
     /**the os-level demux mechanism*/
-    OsEventDemultiplexer<T_osLevelDemultiplexer> m_OsLevelDemultiplexer;
+    T_osLevelDemultiplexer m_OsLevelDemultiplexer;
 
     bool m_bStop;
 
@@ -80,7 +77,7 @@ class AppEventDemultiplexerArrayImpl
         m_OsLevelDemultiplexer.stop();
     }
 
-    bool isStopped(void)
+    bool isStopped(void) const
     {
         return m_bStop;
     }
@@ -100,8 +97,6 @@ class AppEventDemultiplexerArrayImpl
     
             m_handlers[iCurrIndex] = pHandlers;
             m_indexes[pSocket->getSocketHandle()] = iCurrIndex;
-
-            dbg::debug() << "Adding new socket " << pSocket->getSocketHandle() << ".";
         }
         else //already registered
         {
@@ -110,17 +105,7 @@ class AppEventDemultiplexerArrayImpl
             m_handlers[iIndex]->m_events |= events;
         }
 
-        dbg::debug() << "Socket " << pSocket->getSocketHandle() << "registered for events: " << events << std::endl;
-    
-        try
-        {
-           // adding the FD for the given Socket in select()'s fd_sets
-            m_OsLevelDemultiplexer.add_fd(pSocket->getSocketHandle(), events);
-        }
-        catch(std::exception& e)
-        {
-            dbg::error() << "Error registering descriptor in the os demux: " << e.what() << std::endl;
-        }
+        m_OsLevelDemultiplexer.add_fd(pSocket->getSocketHandle(), events);
     }
     
     void
@@ -150,13 +135,7 @@ class AppEventDemultiplexerArrayImpl
                     m_handlers[iLastHandlersIndex] = NULL;
                     m_indexes[m_handlers[iIndex]->m_psocket->getSocketHandle()] = iIndex;
                 }
-                
-                dbg::debug() << "Socket " << pSocket->getSocketHandle() << "removed." << std::endl;
             }
-        }
-        else
-        {
-            dbg::warning() << "Socket " << pSocket->getSocketHandle() << "not found." << std::endl;
         }
     }
     
@@ -177,28 +156,20 @@ class AppEventDemultiplexerArrayImpl
         // The deactivation takes part in the lower level demultiplexer, we are adding new events to the file descriptor, 
         // but we are telling the OS to not watch this descriptor, i.e. it stays in our structures and only excluded from the OS monitoring.
         m_OsLevelDemultiplexer.deactivate_fd(pSocket->getSocketHandle());
-    
-        dbg::debug() << "Deactivated socket " << pSocket->getSocketHandle() << std::endl;
     }
     
     void
     reactivate_socket(net::CSocket *pSocket)
     {
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
-    
         m_OsLevelDemultiplexer.reactivate_fd(pSocket->getSocketHandle());
-    
-        dbg::debug() << "Reactivated socket " << pSocket->getSocketHandle() << std::endl;
     }
 
     bool getReadyEventHandler(CReactorUtils::SHandlerTriple& ready)
     {
         int iResult = m_OsLevelDemultiplexer.watch_fds();
 
-        if(isStopped())
-            return false;
-        
-        if(iResult < 0) // error
+        if(isStopped() || iResult < 0)
             return false;
         
         if(iResult == 0) // timer
@@ -212,7 +183,9 @@ class AppEventDemultiplexerArrayImpl
         bool bFound = false;
         HandlersContainerIt_t IT;
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
-        for(IT = m_handlers.begin(), i = 0; IT != m_handlers.end() && i < m_iNumberOfRegisteredSockets; IT++, i++)
+        for(IT = m_handlers.begin(), i = 0;
+                IT != m_handlers.end() && i < m_iNumberOfRegisteredSockets;
+                IT++, i++)
         {
             assert((*IT) != NULL);
     

@@ -30,23 +30,39 @@
 
 namespace net
 {
-    class x_socket_exception : public std::exception
+    class CNetException : public std::exception
     {
     public:
-        x_socket_exception(const std::string& sMessage) throw()
-            :exception(),
-            m_sMessage(sMessage) 
-        {}
-
-        virtual ~x_socket_exception () throw()
-        {}
+        CNetException(const std::string& sMessage, int iErrNum = 0) throw()
+            : exception()
+            , m_sMessage(sMessage)
+            , m_iErrNum(iErrNum)
+        {
+        }
+        
+        CNetException(const char* pchMessage, int iErrNum = 0) throw()
+            : exception()
+            , m_sMessage(pchMessage)
+            , m_iErrNum(iErrNum)
+        {
+        }
+        
+        virtual ~CNetException() throw()
+        {
+        }
 
         virtual const char* what() const throw()
         {
             return m_sMessage.c_str();
         }
 
+        int getErrNum(void) const throw()
+        {
+            return m_iErrNum;
+        }
+
     private:
+        int m_iErrNum;
         std::string m_sMessage;
     };
 }/*namepsace net*/

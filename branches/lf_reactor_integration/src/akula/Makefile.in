@@ -13,7 +13,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -45,34 +44,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libakula_ladir)"
-libakula_laLTLIBRARIES_INSTALL = $(INSTALL)
-LTLIBRARIES = $(libakula_la_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-libakula_la_DEPENDENCIES = $(top_builddir)/src/akula/dbg/libdbg.la \
-	$(top_builddir)/src/akula/net/libnet.la \
-	$(top_builddir)/src/akula/http/libhttp.la \
-	$(top_builddir)/src/akula/reactor/libreactor.la \
-	$(am__DEPENDENCIES_1)
-am_libakula_la_OBJECTS =
-libakula_la_OBJECTS = $(am_libakula_la_OBJECTS)
-DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libakula_la_SOURCES)
-DIST_SOURCES = $(libakula_la_SOURCES)
+SOURCES =
+DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-exec-recursive install-info-recursive \
@@ -181,37 +154,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
-libakula_ladir = $(libdir)
-
-#        EXAMPLE_RELEASE=2:1:3
-#        EXAMPLE_LIBRARY_VERSION=3:0:0
-#                             | | |
-#                      +------+ | +---+
-#                      |        |     |
-#                    current:revision:age
-#                      |        |     |
-#                      |        |     +- increment if interfaces have been added
-#                      |        |        set to zero if interfaces have been removed
-#                      |        |        or changed
-#                      |        +- increment if source code has changed
-#                      |           set to zero if current is incremented
-#                      +- increment if interfaces have been added, removed or changed
-AKULA_RELEASE = 0:0:0
-AKULA_LIBRARY_VERSION = 0:0:0
-libakula_la_LDFLAGS = -version-number $(AKULA_LIBRARY_VERSION) -no-undefined
-libakula_la_LTLIBRARIES = libakula.la
-libakula_la_SOURCES = dbg http net reactor utils
-
-#Link all our sub-libraries and libpthread into one
-#We expect to have -lpthread set into $(LIBS); done during configuration, see configure.in
-libakula_la_LIBADD = \
-    $(top_builddir)/src/akula/dbg/libdbg.la \
-    $(top_builddir)/src/akula/net/libnet.la \
-    $(top_builddir)/src/akula/http/libhttp.la \
-    $(top_builddir)/src/akula/reactor/libreactor.la \
-    $(LIBS)
-
-SUBDIRS = dbg utils http net reactor
+SUBDIRS = dbg utils net reactor
 all: all-recursive
 
 .SUFFIXES:
@@ -224,9 +167,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/akula/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/akula/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/akula/Makefile
+	  $(AUTOMAKE) --foreign  src/akula/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -244,41 +187,6 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-libakula_laLTLIBRARIES: $(libakula_la_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	test -z "$(libakula_ladir)" || $(mkdir_p) "$(DESTDIR)$(libakula_ladir)"
-	@list='$(libakula_la_LTLIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    f=$(am__strip_dir) \
-	    echo " $(LIBTOOL) --mode=install $(libakula_laLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libakula_ladir)/$$f'"; \
-	    $(LIBTOOL) --mode=install $(libakula_laLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libakula_ladir)/$$f"; \
-	  else :; fi; \
-	done
-
-uninstall-libakula_laLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@set -x; list='$(libakula_la_LTLIBRARIES)'; for p in $$list; do \
-	  p=$(am__strip_dir) \
-	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(libakula_ladir)/$$p'"; \
-	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libakula_ladir)/$$p"; \
-	done
-
-clean-libakula_laLTLIBRARIES:
-	-test -z "$(libakula_la_LTLIBRARIES)" || rm -f $(libakula_la_LTLIBRARIES)
-	@list='$(libakula_la_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libakula.la: $(libakula_la_OBJECTS) $(libakula_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libakula_ladir) $(libakula_la_LDFLAGS) $(libakula_la_OBJECTS) $(libakula_la_LIBADD) $(LIBS)
-
-mostlyclean-compile:
-	-rm -f *.$(OBJEXT)
-
-distclean-compile:
-	-rm -f *.tab.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -466,12 +374,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(libakula_ladir)"; do \
-	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
-	done
 install: install-recursive
 install-exec: install-exec-recursive
 install-data: install-data-recursive
@@ -498,13 +403,12 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic clean-libakula_laLTLIBRARIES clean-libtool \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f Makefile
-distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+distclean-am: clean-am distclean-generic distclean-libtool \
+	distclean-tags
 
 dvi: dvi-recursive
 
@@ -516,7 +420,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-libakula_laLTLIBRARIES
+install-data-am:
 
 install-exec-am:
 
@@ -532,8 +436,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-generic mostlyclean-libtool
 
 pdf: pdf-recursive
 
@@ -543,24 +446,22 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-info-am uninstall-libakula_laLTLIBRARIES
+uninstall-am: uninstall-info-am
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-generic clean-libakula_laLTLIBRARIES clean-libtool \
-	clean-recursive ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
+	clean clean-generic clean-libtool clean-recursive ctags \
+	ctags-recursive distclean distclean-generic distclean-libtool \
 	distclean-recursive distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-libakula_laLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
-	pdf pdf-am ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-info-am uninstall-libakula_laLTLIBRARIES
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic maintainer-clean-recursive \
+	mostlyclean mostlyclean-generic mostlyclean-libtool \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-info-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -20,7 +20,6 @@
 #ifndef LF_THREAD_POOL_H
 #define LF_THREAD_POOL_H
 
-#include <akula/dbg/dbg.h>
 #include <akula/utils/utils.h>
 #include "reactor_utils.h"
 #include <functional>
@@ -101,25 +100,16 @@ namespace reactor
                 while(m_leaderThread != NO_CURRENT_LEADER)
                 {
                     if(m_condition.wait())
-                    {
-                        dbg::error() << "Thread pool join failed: condition wait\n";
                         return false;
-                    }
 
                     if(isStopped())
-                    {
                         return true;
-                    }
                 }
             
                 m_leaderThread = utils::CThread<>::self();
-                //dbg::info() << "Leader thread: 0x" << std::hex << m_LeaderThread << "\n";
             
                 if(guard.release())
-                {
-                    dbg::error() << "Thread pool join failed: mutex release\n";
                     return false;
-                }
             
                 reactor::CReactorUtils::SHandlerTriple ready;
                 if(!m_reactor.getReadyEventHandler(ready))
@@ -129,7 +119,8 @@ namespace reactor
             
                 m_reactor.deactivate_socket(ready.m_psocket);
 
-                promote_new_leader();
+                if(!promote_new_leader())
+                    return false;
 
                 bool bReactivate;
 
@@ -144,10 +135,7 @@ namespace reactor
                     m_reactor.reactivate_socket(ready.m_psocket);
             
                 if(guard.acquire())
-                {
-                    dbg::error() << "Thread pool join failed: mutex acqire\n";
                     return false;
-                }
             }
 
             return true;
@@ -173,10 +161,7 @@ namespace reactor
             m_leaderThread = NO_CURRENT_LEADER;
     
             if(m_condition.signal())
-            {
-                dbg::error() << "Thread pool promote_new_leader failed: condition signal\n";
                 return false;
-            }
     
             return true;
         }

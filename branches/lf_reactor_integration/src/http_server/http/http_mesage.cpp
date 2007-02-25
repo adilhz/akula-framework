@@ -185,7 +185,6 @@ http::CHttpMessage::getline(std::string::const_iterator from, std::string::const
     return from;
 }
 
-//TEST-----------------------------------------------------------------
 /**Return the last position of the line*/
 char*
 http::CHttpMessage::getline(char* from, char* to)
@@ -198,7 +197,6 @@ http::CHttpMessage::getline(char* from, char* to)
 
     return NULL; //not found CRLF
 }
-//TEST-----------------------------------------------------------------
 
 /**
  * HTTP-date    = rfc1123-date | rfc850-date | asctime-date
