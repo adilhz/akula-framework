@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "TUT/tut.h"
-#include "akula/http/http.h"
+#include "http_server/http/http.h"
 #include <iostream>
 #include <vector>
 #include <string>

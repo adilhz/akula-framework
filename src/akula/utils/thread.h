@@ -22,9 +22,7 @@
 #define THREAD_H
 
 #include <pthread.h>
-#include <akula/dbg/dbg.h>
 #include <cassert>
-#include <cerrno>
 #include <functional>    /*std::unary_function<>*/
 
 namespace utils
@@ -137,14 +135,12 @@ namespace utils
             //set detach state
             if(::pthread_attr_setdetachstate(&(attrInitializer.attr), isDetached() ? PTHREAD_CREATE_JOINABLE : PTHREAD_CREATE_DETACHED) != 0)
             {
-                dbg::error() << "Couldn't set detach state: " << ::strerror(errno) << "\n";
                 delete this;
                 return false;
             }
 
             if(::pthread_create(&m_thread, NULL, threadRunner, reinterpret_cast<void*>(this)) != 0)
             {
-                dbg::error() << "Error starting thread: " << ::strerror(errno) << std::endl;
                 delete this;
                 return false;
             }

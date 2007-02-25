@@ -20,51 +20,63 @@
 #ifndef REACTOR_UTILS_H
 #define REACTOR_UTILS_H
 
-// forward declarations
-namespace net {class CSocket;}
+#include "reactor_utils.h"
+#include <akula/net/socket.h>
+#include <unistd.h>                     //for getdtablesize()
 
 namespace reactor
 {
- class CReactorUtils
- {
-  public:
-     static const unsigned long NO_REGISTERED_EVENTS;
-     static const unsigned long READ_MASK;
-     static const unsigned long WRITE_MASK;
-     static const unsigned long REMOVE_MASK;
- 
-     static const unsigned long MAX_OPEN_FILES_PER_PROCESS;
-
-    /**
-     * @class IEventHandler
-     * @brief   This is the logic of the given socket - must be defined from the class
-     */
-    struct IEventHandler
-    {
-        virtual long callback(net::CSocket* pSocket, unsigned long ulFlags) = 0;
-    };
-
-    class CEventHandlers
+    class CReactorUtils
     {
      public:
-        CEventHandlers(IEventHandler* pRHandler, IEventHandler* pWHandler, net::CSocket* socket);
+        typedef unsigned long EventType_t;
 
-        ~CEventHandlers();
+        enum Events
+        {
+            NO_EVENTS = 0,
+            READ_EVENT = 0x1 << 0,
+            WRITE_EVENT = 0x1 << 1,
+            TIMER_EVENT =  0x1 << 2
+        };
 
-        CEventHandlers& operator=(const CEventHandlers& rhs);
+        static unsigned long maxOpenFilesPerProcess(void)
+        {
+            return ::getdtablesize();
+        }
 
-        IEventHandler* pReadEventHandler;
-        IEventHandler* pWriteEventHandler;
-        net::CSocket*            pSocket;
+        struct IEventHandler
+        {
+            virtual bool handle_read(net::CSocket* pSocket)
+            {
+                return false;
+            }
+            
+            virtual bool handle_write(net::CSocket* pSocket)
+            {
+                return false;
+            }
+        };
+
+        struct SHandlerTriple
+        {
+            IEventHandler* m_phandler;
+            net::CSocket* m_psocket;
+            EventType_t m_events;
+
+            SHandlerTriple()
+                : m_phandler(NULL) ,m_psocket(NULL) ,m_events(NO_EVENTS)
+            {}
+
+            SHandlerTriple(IEventHandler* peh, net::CSocket* ps, EventType_t e)
+                : m_phandler(peh) ,m_psocket(ps) ,m_events(e)
+            {}
+        };
+
+     private:
+        /*Disallow copying and assignment*/
+        CReactorUtils(const CReactorUtils&);
+        CReactorUtils& operator=(const CReactorUtils&);
     };
-
-  private:
-      /*Disallow copying and assignment*/
-      CReactorUtils(const CReactorUtils&);
-      CReactorUtils& operator=(const CReactorUtils&);
- 
- };
-
 }//namespace reactor
 
 #endif /*REACTOR_UTILS_H*/

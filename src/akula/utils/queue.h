@@ -24,28 +24,29 @@
 
 namespace utils
 {
-    template<class T>
+    template< class T, class T_engine = std::queue<T> >
     class CQueue
     {
     protected:
-        std::queue<T> m_queue;
+        T_engine m_engine;
 
     public:
         virtual bool isEmpty(void)
         {
-            return m_queue.empty();
+            return m_engine.empty();
         }
-        
+
+        /// Returns and *removes* element from the queue
         virtual T get(void)
         {
-            T element = m_queue.front();
-            m_queue.pop();
+            T element = m_engine.front();
+            m_engine.pop();
             return element;
         }
 
         virtual void put(T element)
         {
-            m_queue.push(element);
+            m_engine.push(element);
         }
     };
 }//namespace utils
