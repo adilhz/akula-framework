@@ -2,7 +2,7 @@
 #ifndef __CONNECTION_H
 #define __CONNECTION_H
 
-#include <akula/http/http.h>
+#include "http/http.h"
 #include <akula/utils/utils.h>
 #include <akula/reactor/reactor.h>
 #include <akula/net/net.h>

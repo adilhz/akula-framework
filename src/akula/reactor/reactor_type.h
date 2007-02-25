@@ -73,40 +73,34 @@ namespace reactor
             m_LFThreadPool.stop();
         }
 
-        bool isStopped() { return m_bStop;}
+        bool isStopped() const { return m_bStop;}
 
-        void
-        register_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events, CReactorUtils::IEventHandler* pHandler)
+        void register_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events, CReactorUtils::IEventHandler* pHandler)
         {
             m_engine.register_socket(pSocket, events, pHandler);
         }
         
-        void
-        unregister_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events)
+        void unregister_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events)
         {
             m_engine.unregister_socket(pSocket, events);
         }
 
-        void
-        deactivate_socket(net::CSocket* pSocket)
+        void deactivate_socket(net::CSocket* pSocket)
         {
             m_engine.deactivate_socket(pSocket);
         }
         
-        void
-        reactivate_socket(net::CSocket* pSocket)
+        void reactivate_socket(net::CSocket* pSocket)
         {
             m_engine.reactivate_socket(pSocket);
         }
 
-        bool
-        getReadyEventHandler(CReactorUtils::SHandlerTriple& ready)
+        bool getReadyEventHandler(CReactorUtils::SHandlerTriple& ready)
         {
             return m_engine.getReadyEventHandler(ready);
         }
 
-        void
-        handle_events(unsigned int threads = 1)
+        void handle_events(unsigned int threads = 1)
         {
             if(threads > 1)
                 handle_events_lf(threads);
@@ -129,8 +123,7 @@ namespace reactor
         }
 
     private:
-        void
-        handle_events_lf(unsigned int threads)
+        void handle_events_lf(unsigned int threads)
         {
             //start threads
             for(int i = 0; i < threads -1; i++)

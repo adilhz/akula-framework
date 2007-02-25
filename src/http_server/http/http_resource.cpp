@@ -85,7 +85,6 @@ http::CResource::performRequest(http::CHttpRequest* pRequest)
                 new std::fstream(sAbsoluteTargetPath.c_str(), std::ios::in | std::ios::binary);
             if(pFile->is_open())
             {
-                //MSG(AIM_DEBUG, "Method %s, file %s exists", CHttpMessage::methodValue2String(method).c_str(), sAbsoluteTargetPath.c_str());
                 /*
                 *The HEAD method is identical to GET except that the server MUST NOT return a message-body in the response.
                 *The metainformation contained in the HTTP headers in response to a HEAD request SHOULD be identical to the information sent in response to a GET request.
@@ -118,7 +117,6 @@ http::CResource::performRequest(http::CHttpRequest* pRequest)
             }
             else
             {
-                //MSG(AIM_DEBUG, "Method GET, file %s doesn't exist", sAbsoluteTargetPath.c_str());
                 pReply = new CHttpReply(404, CHttpMessage::MESSAGE_NOT_FOUND);
             }
         }

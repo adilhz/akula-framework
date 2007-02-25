@@ -1804,7 +1804,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=akula
- VERSION=0.1
+ VERSION=0.1.0rc1
 
 
 cat >>confdefs.h <<_ACEOF
@@ -18675,8 +18675,7 @@ echo "$as_me: error: *** pthread library not found!" >&2;}
 fi
 
 
-
-                                                                                                                        ac_config_files="$ac_config_files Makefile src/Makefile src/lf_http_server/Makefile src/akula/Makefile src/unit_tests/Makefile src/akula/dbg/Makefile src/akula/utils/Makefile src/akula/http/Makefile src/akula/net/Makefile src/akula/reactor/Makefile src/unit_tests/TUT/Makefile src/unit_tests/tests/Makefile"
+                                                                                                                        ac_config_files="$ac_config_files Makefile src/Makefile src/http_server/Makefile src/akula/Makefile src/unit_tests/Makefile src/akula/dbg/Makefile src/akula/utils/Makefile src/akula/net/Makefile src/akula/reactor/Makefile src/unit_tests/TUT/Makefile src/unit_tests/tests/Makefile src/http_server/http/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -19235,16 +19234,16 @@ do
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-  "src/lf_http_server/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/lf_http_server/Makefile" ;;
+  "src/http_server/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/http_server/Makefile" ;;
   "src/akula/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/akula/Makefile" ;;
   "src/unit_tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/unit_tests/Makefile" ;;
   "src/akula/dbg/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/akula/dbg/Makefile" ;;
   "src/akula/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/akula/utils/Makefile" ;;
-  "src/akula/http/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/akula/http/Makefile" ;;
   "src/akula/net/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/akula/net/Makefile" ;;
   "src/akula/reactor/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/akula/reactor/Makefile" ;;
   "src/unit_tests/TUT/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/unit_tests/TUT/Makefile" ;;
   "src/unit_tests/tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/unit_tests/tests/Makefile" ;;
+  "src/http_server/http/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/http_server/http/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
@@ -20113,4 +20112,5 @@ if test "$no_create" != yes; then
   # would make configure fail if this is the last instruction.
   $ac_cs_success || { (exit 1); exit 1; }
 fi
+
 
