@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "TUT/tut.h"
 #include "akula/utils/thread.h"
-#include "akula/dbg/dbg.h"
 #include <iostream>
 #include <string>
 #include <functional>
@@ -53,10 +52,6 @@ namespace tut
     template<>
     void object::test<1>()
     {
-        dbg::enableLevelPrefix( true);
-        dbg::setLogLevel( dbg::ALL);
-        dbg::setLogStream( &std::cout);
-
         int arg = 0;
         int* parg = &arg;
         

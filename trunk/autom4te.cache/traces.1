@@ -55,7 +55,7 @@ m4trace:configure.in:3: -1- _m4_warn([obsolete], [The macro `AM_CONFIG_HEADER' i
 You should run autoupdate.], [aclocal.m4:6747: AM_CONFIG_HEADER is expanded from...
 configure.in:3: the top level])
 m4trace:configure.in:3: -1- AC_CONFIG_HEADERS([config.h])
-m4trace:configure.in:4: -1- AM_INIT_AUTOMAKE([akula], [0.1])
+m4trace:configure.in:4: -1- AM_INIT_AUTOMAKE([akula], [0.1.0rc1])
 m4trace:configure.in:4: -1- m4_pattern_allow([^AM_[A-Z]+FLAGS$])
 m4trace:configure.in:4: -1- AM_AUTOMAKE_VERSION([1.9.6])
 m4trace:configure.in:4: -1- AC_PROG_INSTALL
@@ -64,7 +64,7 @@ m4trace:configure.in:4: -1- AC_SUBST([INSTALL_SCRIPT])
 m4trace:configure.in:4: -1- AC_SUBST([INSTALL_DATA])
 m4trace:configure.in:4: -1- AC_SUBST([CYGPATH_W])
 m4trace:configure.in:4: -1- AC_SUBST([PACKAGE], [akula])
-m4trace:configure.in:4: -1- AC_SUBST([VERSION], [0.1])
+m4trace:configure.in:4: -1- AC_SUBST([VERSION], [0.1.0rc1])
 m4trace:configure.in:4: -1- AC_DEFINE_TRACE_LITERAL([PACKAGE])
 m4trace:configure.in:4: -1- AH_OUTPUT([PACKAGE], [/* Name of package */
 #undef PACKAGE])
@@ -392,8 +392,20 @@ m4trace:configure.in:15: -1- AC_CHECK_LIB([pthread], [pthread_create], [LIBS="$L
 echo "$as_me: error: *** pthread library not found!" >&2;}
    { (exit 1); exit 1; }; } 
 ])
-m4trace:configure.in:18: -1- AC_CONFIG_FILES([Makefile src/Makefile src/lf_http_server/Makefile src/akula/Makefile src/unit_tests/Makefile src/akula/dbg/Makefile src/akula/utils/Makefile src/akula/http/Makefile src/akula/net/Makefile src/akula/reactor/Makefile src/unit_tests/TUT/Makefile src/unit_tests/tests/Makefile])
-m4trace:configure.in:18: -1- _m4_warn([obsolete], [AC_OUTPUT should be used without arguments.
+m4trace:configure.in:29: -1- AC_CONFIG_FILES([
+ Makefile
+ src/Makefile
+ src/http_server/Makefile
+ src/akula/Makefile
+ src/unit_tests/Makefile
+ src/akula/dbg/Makefile
+ src/akula/utils/Makefile
+ src/akula/net/Makefile
+ src/akula/reactor/Makefile
+ src/unit_tests/TUT/Makefile
+ src/unit_tests/tests/Makefile
+ src/http_server/http/Makefile])
+m4trace:configure.in:29: -1- _m4_warn([obsolete], [AC_OUTPUT should be used without arguments.
 You should run autoupdate.], [])
-m4trace:configure.in:18: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
-m4trace:configure.in:18: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])
+m4trace:configure.in:29: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
+m4trace:configure.in:29: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])

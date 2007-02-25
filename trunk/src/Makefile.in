@@ -157,7 +157,7 @@ target_alias = @target_alias@
 INCLUDES = $(all_includes)
 
 # the library search path.
-SUBDIRS = akula lf_http_server unit_tests
+SUBDIRS = akula http_server unit_tests
 all: all-recursive
 
 .SUFFIXES:
@@ -170,9 +170,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/Makefile
+	  $(AUTOMAKE) --foreign  src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

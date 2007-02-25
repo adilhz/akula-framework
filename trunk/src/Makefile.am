@@ -4,4 +4,4 @@
 INCLUDES = $(all_includes)
 
 # the library search path.
-SUBDIRS = akula lf_http_server unit_tests
+SUBDIRS = akula http_server unit_tests

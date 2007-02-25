@@ -21,10 +21,8 @@
 #ifndef APP_EVENT_DEMULTIPLXER_ARRAY_H
 #define APP_EVENT_DEMULTIPLXER_ARRAY_H
 
-#include "os_event_demultiplexer.h"
 #include "reactor_utils.h"
 #include <akula/net/socket.h>
-#include <akula/dbg/dbg.h>
 #include <akula/utils/guard.h>
 #include <akula/utils/thread_mutex.h>
 #include <vector>
@@ -33,13 +31,12 @@
 
 namespace reactor
 {
-//Engine for app-level demultiplexing
 
 template<class T_osLevelDemultiplexer>
 class AppEventDemultiplexerArrayImpl
 {
  private:
-    typedef std::vector<CReactorUtils::CEventHandlers*> HandlersContainer_t;
+    typedef std::vector<CReactorUtils::SHandlerTriple*> HandlersContainer_t;
     typedef HandlersContainer_t::iterator HandlersContainerIt_t;
 
     typedef std::vector<int> IndexContainer_t;
@@ -49,94 +46,83 @@ class AppEventDemultiplexerArrayImpl
     IndexContainer_t m_indexes;
 
     utils::Thread_Mutex m_mutex;
-    
+
     int m_iNumberOfRegisteredSockets;
 
     /**the os-level demux mechanism*/
-    OsEventDemultiplexer<T_osLevelDemultiplexer> m_OsLevelDemultiplexer;
+    T_osLevelDemultiplexer m_OsLevelDemultiplexer;
+
+    bool m_bStop;
 
  public:
     AppEventDemultiplexerArrayImpl()
-        :m_handlers(CReactorUtils::MAX_OPEN_FILES_PER_PROCESS) //all the elements should be NULL
-        , m_indexes(CReactorUtils::MAX_OPEN_FILES_PER_PROCESS, -1) //fill in the index table with -1
+        :m_handlers(CReactorUtils::maxOpenFilesPerProcess()) //all the elements should be NULL
+        , m_indexes(CReactorUtils::maxOpenFilesPerProcess(), -1) //fill in the index table with -1
         , m_iNumberOfRegisteredSockets(0)
+        , m_bStop(false)
     {
     }
     
     ~AppEventDemultiplexerArrayImpl()
     {
+        HandlersContainerIt_t IT;
+        int i;
+        for(IT = m_handlers.begin(), i = 0; IT != m_handlers.end() && i < m_iNumberOfRegisteredSockets; IT++, i++)
+            delete *IT;
     }
 
-     inline
-     unsigned long
-     get_events(const CReactorUtils::CEventHandlers& handlers) const
-     {
-         unsigned long ulRetVal = CReactorUtils::NO_REGISTERED_EVENTS;
-         if(handlers.pReadEventHandler != NULL) ulRetVal |= CReactorUtils::READ_MASK;
-         if(handlers.pWriteEventHandler != NULL) ulRetVal |= CReactorUtils::WRITE_MASK;
-     
-         return ulRetVal;
-     }
-    
+    void stop(void)
+    {
+        m_bStop = true;
+        m_OsLevelDemultiplexer.stop();
+    }
+
+    bool isStopped(void) const
+    {
+        return m_bStop;
+    }
+
     void
-    register_socket(net::CSocket *pSocket, unsigned long ulEvents, CReactorUtils::IEventHandler* pEventHandler)
+    register_socket(net::CSocket* pSocket, CReactorUtils::EventType_t events, CReactorUtils::IEventHandler* pHandler)
     {
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
         
         int iIndex = m_indexes[pSocket->getSocketHandle()];
-    
         if(iIndex == -1) //not registered for other events
         {
             int iCurrIndex = m_iNumberOfRegisteredSockets++;
     
-            CReactorUtils::CEventHandlers* pHandlers = new CReactorUtils::CEventHandlers(
-                                                                                (ulEvents & CReactorUtils::READ_MASK) ? pEventHandler : NULL,
-                                                                                (ulEvents & CReactorUtils::WRITE_MASK) ? pEventHandler : NULL,
-                                                                                pSocket);
+            CReactorUtils::SHandlerTriple* pHandlers = 
+                new CReactorUtils::SHandlerTriple(pHandler, pSocket, events);
     
             m_handlers[iCurrIndex] = pHandlers;
-            
             m_indexes[pSocket->getSocketHandle()] = iCurrIndex;
-
-            dbg::debug() << "Adding new socket " << pSocket->getSocketHandle() << ".";
         }
         else //already registered
         {
             assert(m_handlers[iIndex] != NULL);
-            
-            if(ulEvents & CReactorUtils::READ_MASK) m_handlers[iIndex]->pReadEventHandler = pEventHandler;
-            if(ulEvents & CReactorUtils::WRITE_MASK) m_handlers[iIndex]->pWriteEventHandler = pEventHandler;
+
+            m_handlers[iIndex]->m_events |= events;
         }
 
-        dbg::debug() << "Socket " << pSocket->getSocketHandle() << "registered for events: " << ulEvents << std::endl;
-    
-        try
-        {
-           // adding the FD for the given Socket in select()'s fd_sets
-            m_OsLevelDemultiplexer.add_fd(pSocket->getSocketHandle(), ulEvents);
-        }
-        catch(std::exception& e)
-        {
-            dbg::error() << "Error registering descriptor in the os demux: " << e.what() << std::endl;
-        }
+        m_OsLevelDemultiplexer.add_fd(pSocket->getSocketHandle(), events);
     }
     
     void
-    unregister_socket(net::CSocket *pSocket, unsigned long ulEvents)
+    unregister_socket(net::CSocket *pSocket, CReactorUtils::EventType_t events)
     {
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
         
         //unregister from low-level event demultiplexor
-        m_OsLevelDemultiplexer.remove_fd(pSocket->getSocketHandle(), ulEvents);
+        m_OsLevelDemultiplexer.remove_fd(pSocket->getSocketHandle(), events);
     
         int iIndex = m_indexes[pSocket->getSocketHandle()];
         if(iIndex != -1)
         {
             assert(m_handlers[iIndex] != NULL);
             
-            if(ulEvents & CReactorUtils::READ_MASK) m_handlers[iIndex]->pReadEventHandler = NULL;
-            if(ulEvents & CReactorUtils::WRITE_MASK) m_handlers[iIndex]->pWriteEventHandler = NULL;
-            if(ulEvents & CReactorUtils::REMOVE_MASK)
+            m_handlers[iIndex]->m_events &= (~events);
+            if(m_handlers[iIndex]->m_events == 0)
             {
                 delete m_handlers[iIndex];
                 m_handlers[iIndex] = NULL;
@@ -147,15 +133,9 @@ class AppEventDemultiplexerArrayImpl
                 {
                     m_handlers[iIndex] = m_handlers[iLastHandlersIndex];
                     m_handlers[iLastHandlersIndex] = NULL;
-                    m_indexes[m_handlers[iIndex]->pSocket->getSocketHandle()] = iIndex;
+                    m_indexes[m_handlers[iIndex]->m_psocket->getSocketHandle()] = iIndex;
                 }
-                
-                dbg::debug() << "Socket " << pSocket->getSocketHandle() << "removed." << std::endl;
             }
-        }
-        else
-        {
-            dbg::warning() << "Socket " << pSocket->getSocketHandle() << "not found." << std::endl;
         }
     }
     
@@ -176,71 +156,63 @@ class AppEventDemultiplexerArrayImpl
         // The deactivation takes part in the lower level demultiplexer, we are adding new events to the file descriptor, 
         // but we are telling the OS to not watch this descriptor, i.e. it stays in our structures and only excluded from the OS monitoring.
         m_OsLevelDemultiplexer.deactivate_fd(pSocket->getSocketHandle());
-    
-        dbg::debug() << "Deactivated socket " << pSocket->getSocketHandle() << std::endl;
     }
     
     void
     reactivate_socket(net::CSocket *pSocket)
     {
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
-    
         m_OsLevelDemultiplexer.reactivate_fd(pSocket->getSocketHandle());
-    
-        dbg::debug() << "Reactivated socket " << pSocket->getSocketHandle() << std::endl;
     }
-    
-    int
-    handle_events(void)
+
+    bool getReadyEventHandler(CReactorUtils::SHandlerTriple& ready)
     {
         int iResult = m_OsLevelDemultiplexer.watch_fds();
-    
-        if(iResult < 0) // error
-        {
-            dbg::error() << "Error with reactor " << ::strerror(errno) << std::endl;
-            return iResult;
-        }
+
+        if(isStopped() || iResult < 0)
+            return false;
         
         if(iResult == 0) // timer
         {
-            dbg::debug() << "Timer expired." << std::endl;
-            return iResult;
+            //TODO: fill in ready timer handlers
+            return true;
         }
-        
-        // Invoke handler - the first matching ready handler will be triggered
+    
+        // find the ready event handlers
         int i;
+        bool bFound = false;
         HandlersContainerIt_t IT;
         utils::Guard<utils::Thread_Mutex> guard(m_mutex);
-        for(IT = m_handlers.begin(), i = 0; IT != m_handlers.end() && i < m_iNumberOfRegisteredSockets; IT++, i++)
+        for(IT = m_handlers.begin(), i = 0;
+                IT != m_handlers.end() && i < m_iNumberOfRegisteredSockets;
+                IT++, i++)
         {
             assert((*IT) != NULL);
-            
-            // Read event has higher priority than write event
-            if((get_events(**IT) & CReactorUtils::READ_MASK) &&
-                m_OsLevelDemultiplexer.check_fd((*IT)->pSocket->getSocketHandle(), CReactorUtils::READ_MASK))
+    
+            if(((*IT)->m_events & CReactorUtils::READ_EVENT) &&
+                m_OsLevelDemultiplexer.check_fd((*IT)->m_psocket->getSocketHandle(), CReactorUtils::READ_EVENT))
             {
-                dbg::debug() << "Invoking socket " << (*IT)->pSocket->getSocketHandle() << " for READ event.\n";
-
-                guard.release();
-                (*IT)->pReadEventHandler->callback((*IT)->pSocket, CReactorUtils::READ_MASK);
-                return iResult;
+                ready.m_events |= CReactorUtils::READ_EVENT;
+                bFound = true;
+            }
+        
+            if(((*IT)->m_events & CReactorUtils::WRITE_EVENT) &&
+                m_OsLevelDemultiplexer.check_fd((*IT)->m_psocket->getSocketHandle(), CReactorUtils::WRITE_EVENT))
+            {
+                ready.m_events |= CReactorUtils::WRITE_EVENT;
+                bFound = true;
             }
     
-            if((get_events(**IT) & CReactorUtils::WRITE_MASK) &&
-                m_OsLevelDemultiplexer.check_fd((*IT)->pSocket->getSocketHandle(), CReactorUtils::WRITE_MASK))
+            if(bFound)
             {
-                dbg::debug() << "Invoking socket " << (*IT)->pSocket->getSocketHandle() << " WRITE for event.\n";
-
-                guard.release();
-                (*IT)->pWriteEventHandler->callback((*IT)->pSocket, CReactorUtils::WRITE_MASK);
-                return iResult;
+                ready.m_phandler = (*IT)->m_phandler;
+                ready.m_psocket = (*IT)->m_psocket;
+                break;
             }
         }
     
-        dbg::error() << "Nandler not found!!! Something is wrong..." << std::endl;
-        return iResult;
+        return bFound;
     }
-    
 };
 
 }//namespace reactor
