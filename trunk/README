@@ -1,0 +1,9 @@
+
+HOWTO USE
+To use you have to add src/akula folder to your project's include path and link the project against pthread library.
+During project's configuration the existence of pthread library is checked and if found "-lpthread" is added to config's ($LIBS)
+
+EXAMPLES
+For now the only available documentation and examples are the example HTTP server under src/http_server
+and the unit tests under src/unit_tests/tests
+
